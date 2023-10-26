@@ -1,60 +1,44 @@
-import { Group, Vector3 } from 'three'
-import { useState, useRef, useEffect, forwardRef } from 'react'
+import { Group } from 'three'
+import { useState, useRef, useEffect, forwardRef, useMemo } from 'react'
 import { ThreeEvent, useFrame } from '@react-three/fiber'
 
-function RubiksCube() {
+function RubiksCube({setLock}: {setLock: (lock: boolean) => void}) {
   const [activeFace, setActiveFace] = useState<string>("none")
   const [activeCubie, setActiveCubie] = useState<string>("none")
+  const [turnDir, setTurnDir] = useState<string>("none")
 
   const faceRef = useRef<Group>(null)
   
   const edgeRefs = Array(12).fill(0).map(_ => useRef<Group>(null))
   const cornerRefs = Array(8).fill(0).map(_ => useRef<Group>(null))
 
-  const iedgePos: Array<[number, number, number]> = 
-                  [[0, 1, 1],
-                   [1, 1, 0],
-                   [0, 1, -1],
-                   [-1, 1, 0], 
-                   [0, -1, 1], 
-                   [1, -1, 0], 
-                   [0, -1, -1], 
-                   [-1, -1, 0],
-                   [1, 0, 1], 
-                   [-1, 0, 1],
-                   [1, 0, -1],
-                   [-1, 0, -1]]
-  const icornerPos: Array<[number, number, number]> = 
-                    [[1, 1, 1],
-                    [1, 1, -1],
-                    [-1, 1, -1],
-                    [-1, 1, 1],
-                    [1, -1, 1],
-                    [-1, -1, 1],
-                    [-1, -1, -1],
-                    [1, -1, -1]]
-  const iedgeRots: Array<[number, number, number]> = Array(12).fill(0).map(_ => [0, 0, 0])
-  const icornerRots: Array<[number, number, number]> = Array(8).fill(0).map(_ => [0, 0, 0])
+  const iEdgeColors:Array<[string, string, string]> = [["purple", "blue", "yellow"],
+                                                       ["orange", "blue", "purple"],
+                                                       ["purple", "blue", "white"],
+                                                       ["red", "blue", "purple"],
+                                                       ["purple", "green", "yellow"],
+                                                       ["orange", "green", "purple"],
+                                                       ["purple", "green", "white"],
+                                                       ["red", "green", "purple"],
+                                                       ["orange", "purple", "yellow"],
+                                                       ["red", "purple", "yellow"],
+                                                       ["orange", "purple", "white"],
+                                                       ["red", "purple", "white"]]
 
-  const [edgePos, setEdgePos] = useState<Array<[number, number, number]>>(iedgePos)
-  const [cornerPos, setCornerPos] = useState<Array<[number, number, number]>>(icornerPos)
-  const [edgeRots, setEdgeRots] = useState<Array<[number, number, number]>>(iedgeRots)
-  const [cornerRots, setCornerRots] = useState<Array<[number, number, number]>>(icornerRots)
+  const iCornerColors:Array<[string, string, string]> = [["orange", "blue", "yellow"],
+                                                         ["orange", "blue", "white"],
+                                                         ["red", "blue", "white"],
+                                                         ["red", "blue", "yellow"],
+                                                         ["orange", "green", "yellow"],
+                                                         ["red", "green", "yellow"],
+                                                         ["red", "green", "white"],
+                                                         ["orange", "green", "white"]]
 
-  const setCubieConfiguration = (position: [number, number, number], rotation: [number, number, number], isCorner: boolean, positionId: number) => {
-    if (isCorner) {
-      setCornerPos(cornerPos.map((pos, i) => i === positionId ? position : pos))
-      setCornerRots(cornerRots.map((rot, i) => i === positionId ? rotation : rot))
-    } else {
-      setEdgePos(edgePos.map((pos, i) => i === positionId ? position : pos))
-      setEdgeRots(edgeRots.map((rot, i) => i === positionId ? rotation : rot))
-    }
-  }
+  const [edgeColors, setEdgeColors] = useState<Array<[string, string, string]>>(iEdgeColors)
+  const [cornerColors, setCornerColors] = useState<Array<[string, string, string]>>(iCornerColors)
 
-  const edgeCubies = Array(12).fill(0).map((_, i) => <Cubie key={"e" + i} ref={edgeRefs[i]} position={edgePos[i]} rotation={edgeRots[i]} isCorner={false} setActiveCubie={setActiveCubie} positionId={i} />)
-  const cornerCubies = Array(8).fill(0).map((_, i) => <Cubie key={"c" + i} ref={cornerRefs[i]} position={cornerPos[i]} rotation={cornerRots[i]} isCorner={true} setActiveCubie={setActiveCubie} positionId={i} />)
-
-
+  const edgeCubies = useMemo(() => Array(12).fill(0).map((_, i) => <Cubie isCorner={false} positionId={i} colors={edgeColors[i]} key={"e" + i} setTurnDir={setTurnDir} setActiveCubie={setActiveCubie} setLock={setLock} ref={edgeRefs[i]}/>), [edgeColors])
+  const cornerCubies = useMemo(() => Array(8).fill(0).map((_, i) => <Cubie isCorner={true} positionId={i} colors={cornerColors[i]} key={"c" + i} setTurnDir={setTurnDir} setActiveCubie={setActiveCubie} setLock={setLock} ref={cornerRefs[i]}/>) , [cornerColors])
 
   const edgeFaces = ["UF", "RU", "UB", "LU", "DF", "RD", "DB", "LD", "RF", "LF", "RB", "LB"]
   const cornerFaces = ["RUF", "RUB", "LUB", "LUF", "RDF", "LDF", "LDB", "RDB"]
@@ -145,159 +129,135 @@ function RubiksCube() {
   const corners = faceCorners.get(activeFace)!
 
   const handlePointerUp = (event: MouseEvent) => {
-    console.log(activeCubie)
     event.stopPropagation()
-    
-    if (faceRef.current) {
-      edgeRefs.filter((_, i) => edges.includes(i)).forEach((cubie, i) => {
-        if (cubie.current) {
-          const pos = new Vector3()
-          cubie.current.getWorldPosition(pos)
-          const rot = cubie.current.rotation
-          setCubieConfiguration([pos.x, pos.y, pos.z], [rot.x, rot.y, rot.z], false, i)
-        }
-      })
-      cornerRefs.filter((_, i) => corners.includes(i)).forEach((cubie, i) => {
-        if (cubie.current) {
-          const pos = new Vector3()
-          cubie.current.getWorldPosition(pos)
-          const rot = cubie.current.rotation
-          setCubieConfiguration([pos.x, pos.y, pos.z], [rot.x, rot.y, rot.z], true, i)
-        }
-      })
-      faceRef.current.rotation.set(0, 0, 0)
-    }
     setActiveCubie("none")
     setActiveFace("none")
+    setTurnDir("none")
+    setLock(false)
+    if(faceRef.current) {
+      const rot = faceRef.current.userData.rotation > 0 ? faceRef.current.userData.rotation % (2 * Math.PI) : (2 * Math.PI) + (faceRef.current.userData.rotation % (2 * Math.PI))
+      
+      const rotInd = Math.floor(rot / (Math.PI / 4))
+      const face = faceRef.current.name
+      const faceReorientation = face === "U" || face === "F" || face === "R" ? -1 : 1
+      const rotation = rotInd == 0 || rotInd == 7 ? 0 : rotInd == 1 || rotInd == 2 ? (4-faceReorientation) : rotInd == 3 || rotInd == 4 ? 2 : (4+faceReorientation)
+      
+      if (rotation === 0) return
+
+      const edges = faceEdges.get(face)!
+      const corners = faceCorners.get(face)!
+
+      const anchor = face === "U" || face === "D" ? 1 : face === "F" || face === "B" ? 2 : 0
+
+      setEdgeColors((prev) => {
+        const newColors = [...prev]
+        for (let i = 0; i < 4; i++) {
+          const colors = prev[edges[i]]
+          const swap1 = (anchor + 1) % 3
+          const swap2 = (anchor + 2) % 3
+          const tmp = colors[swap1]
+          if (rotation !== 2) {
+            colors[swap1] = colors[swap2]
+            colors[swap2] = tmp
+          }
+          newColors[edges[(i + rotation) % 4]] = colors
+        }
+        return newColors
+      })
+      setCornerColors((prev) => {
+        const newColors = [...prev]
+        for (let i = 0; i < 4; i++) {
+          const colors = prev[corners[i]]
+          const swap1 = (anchor + 1) % 3
+          const swap2 = (anchor + 2) % 3
+          const tmp = colors[swap1]
+          if (rotation !== 2) {
+            colors[swap1] = colors[swap2]
+            colors[swap2] = tmp
+          }
+          newColors[corners[(i + rotation) % 4]] = colors
+        }
+        return newColors
+      })
+    }
   }
-
-  useEffect(() => {
-    console.log("reset")
-    
-  }, [edgePos, cornerPos, edgeRots, cornerRots])
-
-  useEffect(() => {
-    console.log(activeFace)
-  }, [activeFace])
 
   useEffect(() => {
     window.addEventListener("pointerup", handlePointerUp)
   }, [])
 
   useFrame(() => {
+    const dir = turnDir === "clockwise" ? 1 : turnDir === "counterclockwise" ? -1 : 0
+    if (dir === 0) return 
     if (faceRef.current) {
       if (activeFace === "U") {
-        faceRef.current.rotation.y -= 0.01
+        faceRef.current.rotation.y -= 0.01 * dir
+        faceRef.current.userData.rotation = faceRef.current.rotation.y
       } else if (activeFace === "D") {
-        faceRef.current.rotation.y += 0.01
+        faceRef.current.rotation.y += 0.01 * dir
+        faceRef.current.userData.rotation = faceRef.current.rotation.y
       } else if (activeFace === "F") {
-        faceRef.current.rotation.z -= 0.01
+        faceRef.current.rotation.z -= 0.01 * dir
+        faceRef.current.userData.rotation = faceRef.current.rotation.z
       } else if ( activeFace === "B") {
-        faceRef.current.rotation.z += 0.01
+        faceRef.current.rotation.z += 0.01 * dir
+        faceRef.current.userData.rotation = faceRef.current.rotation.z
       } else if (activeFace === "L") {
-        faceRef.current.rotation.x += 0.01
+        faceRef.current.rotation.x += 0.01 * dir
+        faceRef.current.userData.rotation = faceRef.current.rotation.x
       } else if (activeFace === "R") {
-        faceRef.current.rotation.x -= 0.01
+        faceRef.current.rotation.x -= 0.01 * dir
+        faceRef.current.userData.rotation = faceRef.current.rotation.x
       }
     }
   }, )
 
   
   return (<>
-    <group ref={faceRef}>
+    {activeFace !== "none" && <group ref={faceRef} name={activeFace}>
       {edgeCubies.filter((_, i) => edges.includes(i))}
       {cornerCubies.filter((_, i) => corners.includes(i))}
-    </group>
+    </group>}
     {edgeCubies.filter((_, i) => !edges.includes(i))}
     {cornerCubies.filter((_, i) => !corners.includes(i))}
   </>)
 }
 
-const Cubie = forwardRef(function Cubie({ positionId, isCorner, setActiveCubie, position, rotation }: 
+const Cubie = forwardRef(function Cubie({ positionId, isCorner, setActiveCubie, setTurnDir, setLock, colors }: 
                                         { positionId: number, isCorner: boolean, 
                                           setActiveCubie: (cubie: string) => void, 
-                                          position: [number, number, number], 
-                                          rotation: [number, number, number]}, ref: any) {
-  const colors = ["purple", "purple", "purple"]
+                                          setTurnDir: (dir: string) => void,
+                                          setLock: (lock: boolean) => void,
+                                          colors: [string, string, string]}, ref: any) {
+    const edgePos: Array<[number, number, number]> = 
+                  [[0, 1, 1],
+                   [1, 1, 0],
+                   [0, 1, -1],
+                   [-1, 1, 0], 
+                   [0, -1, 1], 
+                   [1, -1, 0], 
+                   [0, -1, -1], 
+                   [-1, -1, 0],
+                   [1, 0, 1], 
+                   [-1, 0, 1],
+                   [1, 0, -1],
+                   [-1, 0, -1]]
+  const cornerPos: Array<[number, number, number]> = 
+                    [[1, 1, 1],
+                    [1, 1, -1],
+                    [-1, 1, -1],
+                    [-1, 1, 1],
+                    [1, -1, 1],
+                    [-1, -1, 1],
+                    [-1, -1, -1],
+                    [1, -1, -1]]
   
-  if (isCorner) {
-    if (positionId === 0) {
-      colors[0] = "orange"
-      colors[1] = "blue"
-      colors[2] = "yellow"
-    } else if (positionId === 1) {
-      colors[0] = "orange"
-      colors[1] = "blue"
-      colors[2] = "white"
-    } else if (positionId === 2) {
-      colors[0] = "red"
-      colors[1] = "blue"
-      colors[2] = "white"
-    } else if (positionId === 3) {
-      colors[0] = "red"
-      colors[1] = "blue"
-      colors[2] = "yellow"
-    } else if (positionId === 4) {
-      colors[0] = "orange"
-      colors[1] = "green"
-      colors[2] = "yellow"
-    } else if (positionId === 5) {
-      colors[0] = "red"
-      colors[1] = "green"
-      colors[2] = "yellow"
-    } else if (positionId === 6) {
-      colors[0] = "red"
-      colors[1] = "green"
-      colors[2] = "white"
-    } else if (positionId === 7) {
-      colors[0] = "orange"
-      colors[1] = "green"
-      colors[2] = "white"
-    }
-  } else {
-    if (positionId === 0) {
-      colors[1] = "blue"
-      colors[2] = "yellow"
-    } else if (positionId === 1) {
-      colors[0] = "orange"
-      colors[1] = "blue"
-    } else if (positionId === 2) {
-      colors[1] = "blue"
-      colors[2] = "white"
-    } else if (positionId === 3) {
-      colors[0] = "red"
-      colors[1] = "blue"
-    } else if (positionId === 4) {
-      colors[1] = "green"
-      colors[2] = "yellow"
-    } else if (positionId === 5) {
-      colors[0] = "orange"
-      colors[1] = "green"
-    } else if (positionId === 6) {
-      colors[1] = "green"
-      colors[2] = "white"
-    } else if (positionId === 7) {
-      colors[0] = "red"
-      colors[1] = "green"
-    } else if (positionId === 8) {
-      colors[0] = "orange"
-      colors[2] = "yellow"
-    } else if (positionId === 9) {
-      colors[0] = "red"
-      colors[2] = "yellow"
-    } else if (positionId === 10) {
-      colors[0] = "orange"
-      colors[2] = "white"
-    } else if (positionId === 11) {
-      colors[0] = "red"
-      colors[2] = "white"
-    }
-  }
 
 
-  const x = position[0]
-  const y = position[1]
-  const z = position[2]
+
+  const x = isCorner ? cornerPos[positionId][0] : edgePos[positionId][0]
+  const y = isCorner ? cornerPos[positionId][1] : edgePos[positionId][1]
+  const z = isCorner ? cornerPos[positionId][2] : edgePos[positionId][2]
 
   const xc1 = 0.06 * x
   const yc1 = 0
@@ -313,14 +273,22 @@ const Cubie = forwardRef(function Cubie({ positionId, isCorner, setActiveCubie, 
 
   const handlePointerDown = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation()
+    if (event.buttons === 1) {
+      setTurnDir("clockwise")
+    } else if (event.buttons === 2) {
+      setTurnDir("counterclockwise")
+    } else {
+      return
+    }
     const type = isCorner ? "c" : "e"
     const orientation = event.object.name
     const name = `${type}${orientation}${positionId}`
     setActiveCubie(name)
+    setLock(true)
   }
 
   return (
-    <group ref={ref} position={[x, y, z]} rotation={rotation}>
+    <group ref={ref} position={[x, y, z]}>
       <mesh onPointerDown={handlePointerDown} name="x" position={[xc1, yc1, zc1]}>
         <boxGeometry args={[.9, .9, .9]} />
         <meshStandardMaterial color={colors[0]}/>

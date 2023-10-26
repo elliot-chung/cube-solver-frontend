@@ -19,12 +19,11 @@ function App() {
   return (
     <>
       <h1>Rubiks Cube Solver</h1>
-      <button onClick={() => setLock(!lock)}>Lock Camera</button>
       <div style={{ height: '80vh', width: '100vw', cursor: 'pointer' }}>
         <Canvas >
           <OrbitControls minPolarAngle={0} maxPolarAngle={Math.PI} ref={controlRef} enablePan={false} enableZoom={false}/>
           <ambientLight intensity={0.5}/>
-          <RubiksCube />
+          <RubiksCube setLock={setLock} />
         </Canvas>
       </div>
     </>
