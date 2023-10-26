@@ -2,7 +2,7 @@ import { Group } from 'three'
 import { useState, useRef, useEffect, forwardRef, useMemo } from 'react'
 import { ThreeEvent, useFrame } from '@react-three/fiber'
 
-function RubiksCube({setLock}: {setLock: (lock: boolean) => void}) {
+function InteractiveCube({setLock, cubeData, setCubeData}: {setLock: (lock: boolean) => void, cubeData:Array<[string, string, string]>, setCubeData: (cubeData: Array<[string, string, string]>) => void}) {
   const [activeFace, setActiveFace] = useState<string>("none")
   const [activeCubie, setActiveCubie] = useState<string>("none")
   const [turnDir, setTurnDir] = useState<string>("none")
@@ -12,7 +12,7 @@ function RubiksCube({setLock}: {setLock: (lock: boolean) => void}) {
   const edgeRefs = Array(12).fill(0).map(_ => useRef<Group>(null))
   const cornerRefs = Array(8).fill(0).map(_ => useRef<Group>(null))
 
-  const iEdgeColors:Array<[string, string, string]> = [["purple", "blue", "yellow"],
+  const solvedEdgeColors:Array<[string, string, string]> = [["purple", "blue", "yellow"],
                                                        ["orange", "blue", "purple"],
                                                        ["purple", "blue", "white"],
                                                        ["red", "blue", "purple"],
@@ -25,7 +25,7 @@ function RubiksCube({setLock}: {setLock: (lock: boolean) => void}) {
                                                        ["orange", "purple", "white"],
                                                        ["red", "purple", "white"]]
 
-  const iCornerColors:Array<[string, string, string]> = [["orange", "blue", "yellow"],
+  const solvedCornerColors:Array<[string, string, string]> = [["orange", "blue", "yellow"],
                                                          ["orange", "blue", "white"],
                                                          ["red", "blue", "white"],
                                                          ["red", "blue", "yellow"],
@@ -33,17 +33,29 @@ function RubiksCube({setLock}: {setLock: (lock: boolean) => void}) {
                                                          ["red", "green", "yellow"],
                                                          ["red", "green", "white"],
                                                          ["orange", "green", "white"]]
+  const inputEdgeColors = useMemo(() => cubeData.slice(0, 12), [])
+  const inputCornerColors = useMemo(() => cubeData.slice(12, 20), [])
 
-  const [edgeColors, setEdgeColors] = useState<Array<[string, string, string]>>(iEdgeColors)
-  const [cornerColors, setCornerColors] = useState<Array<[string, string, string]>>(iCornerColors)
+  
+
+  const [edgeColors, setEdgeColors] = useState<Array<[string, string, string]>>(cubeData.length === 0 ? solvedEdgeColors : inputEdgeColors)
+  const [cornerColors, setCornerColors] = useState<Array<[string, string, string]>>(cubeData.length === 0 ? solvedCornerColors : inputCornerColors)
+
+  useEffect(() => {
+    if (cubeData.length === 0) {
+      setEdgeColors(solvedEdgeColors)
+      setCornerColors(solvedCornerColors)
+    }
+  }, [cubeData])
 
   const edgeCubies = useMemo(() => Array(12).fill(0).map((_, i) => <Cubie isCorner={false} positionId={i} colors={edgeColors[i]} key={"e" + i} setTurnDir={setTurnDir} setActiveCubie={setActiveCubie} setLock={setLock} ref={edgeRefs[i]}/>), [edgeColors])
   const cornerCubies = useMemo(() => Array(8).fill(0).map((_, i) => <Cubie isCorner={true} positionId={i} colors={cornerColors[i]} key={"c" + i} setTurnDir={setTurnDir} setActiveCubie={setActiveCubie} setLock={setLock} ref={cornerRefs[i]}/>) , [cornerColors])
 
-  const edgeFaces = ["UF", "RU", "UB", "LU", "DF", "RD", "DB", "LD", "RF", "LF", "RB", "LB"]
-  const cornerFaces = ["RUF", "RUB", "LUB", "LUF", "RDF", "LDF", "LDB", "RDB"]
-
+  
   useEffect(() => {
+    const edgeFaces = ["UF", "RU", "UB", "LU", "DF", "RD", "DB", "LD", "RF", "LF", "RB", "LB"]
+    const cornerFaces = ["RUF", "RUB", "LUB", "LUF", "RDF", "LDF", "LDB", "RDB"]
+
     if (activeCubie === "none") {
       return
     }
@@ -183,6 +195,11 @@ function RubiksCube({setLock}: {setLock: (lock: boolean) => void}) {
   }
 
   useEffect(() => {
+    const cubeData = edgeColors.concat(cornerColors)
+    setCubeData(cubeData)
+  }, [edgeColors, cornerColors])
+
+  useEffect(() => {
     window.addEventListener("pointerup", handlePointerUp)
   }, [])
 
@@ -310,4 +327,4 @@ const Cubie = forwardRef(function Cubie({ positionId, isCorner, setActiveCubie, 
 })
 
 
-export default RubiksCube
+export default InteractiveCube
