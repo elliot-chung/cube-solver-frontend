@@ -6,6 +6,7 @@ import { OrbitControls as OC } from 'three-stdlib'
 import { useRef, useState, useEffect } from 'react'
 import AnimatedCube from './AnimatedCube'
 import { AnimRef } from './AnimatedCube'
+import BlankCube from './BlankCube'
 
 
 function App() {
@@ -14,9 +15,11 @@ function App() {
   const controlRef = useRef<OC>(null)
 
   const [lock, setLock] = useState(false)
-  const [interactivity, setInteractivity] = useState(true)
+  const [mode, setMode] = useState("interactive")
   const [cubeData, setCubeData] = useState<Array<[string, string, string]>>([])
   const [sequence, setSequence] = useState<Array<string>>(seq)
+
+  const [activeColor, setActiveColor] = useState("blue")
 
   useEffect(() => {
     if (controlRef.current) {
@@ -26,7 +29,7 @@ function App() {
 
   const reset = () => {
     setCubeData([])
-    setInteractivity(true)
+    setMode("interactive")
     setBackDisable(true)
     setForDisable(sequence.length === 0)
   }
@@ -68,18 +71,29 @@ function App() {
   return (
     <>
       <h1>Rubiks Cube Solver</h1>
-      {interactivity && <button onClick={() => setInteractivity(!interactivity)}>Toggle Interactivity</button>}
-      {!interactivity && <button onClick={stepBackward} disabled={backDisable} >Previous</button>}
-      {!interactivity && <button onClick={stepForward} disabled={forDisable}>Next</button>}
-      {!interactivity && <button onClick={repeat} >Repeat</button>}
+      {mode !== "animation" && <button onClick={() => setMode("animation")}>Toggle Interactivity</button>}
+      
+      {mode === "interactive" && <button onClick={() => setMode("input")}>Toggle Input Mode</button>}
+
+      {mode === "animation" && <button onClick={stepBackward} disabled={backDisable} >Previous</button>}
+      {mode === "animation" && <button onClick={stepForward} disabled={forDisable}>Next</button>}
+      {mode === "animation" && <button onClick={repeat} >Repeat</button>}
+      
+      {mode === "input" && <button onClick={() => setActiveColor("blue")}>Blue</button>}
+      {mode === "input" && <button onClick={() => setActiveColor("red")}>Red</button>}
+      {mode === "input" && <button onClick={() => setActiveColor("green")}>Green</button>}
+      {mode === "input" && <button onClick={() => setActiveColor("orange")}>Orange</button>}
+      {mode === "input" && <button onClick={() => setActiveColor("yellow")}>Yellow</button>}
+      {mode === "input" && <button onClick={() => setActiveColor("white")}>White</button>}
+      
       <button onClick={reset}>Reset</button>
       <div style={{ height: '80vh', width: '100vw', cursor: 'pointer' }}>
         <Canvas >
           <OrbitControls minPolarAngle={0} maxPolarAngle={Math.PI} ref={controlRef} enablePan={false} enableZoom={false}/>
           <ambientLight intensity={0.5}/>
-          {interactivity ? 
-            <InteractiveCube cubeData={cubeData} setLock={setLock} setCubeData={setCubeData}/> :
-            <AnimatedCube cubeData={cubeData} sequence={sequence} ref={animRef}/> }
+          {mode === "interactive" && <InteractiveCube cubeData={cubeData} setLock={setLock} setCubeData={setCubeData}/> }
+          {mode === "animation" && <AnimatedCube cubeData={cubeData} sequence={sequence} ref={animRef}/> }
+          {mode === "input" && <BlankCube setCubeData={setCubeData} activeColor={activeColor} />}
         </Canvas>
       </div>
     </>
