@@ -55,6 +55,7 @@ function InteractiveCube({setLock, cubeData, setCubeData}: {setLock: (lock: bool
   const cornerCubies = useMemo(() => Array(8).fill(0).map((_, i) => <Cubie type="corner" positionId={i} colors={cornerColors[i]} key={"c" + i} setTurnDir={setTurnDir} setActiveCubie={setActiveCubie} setLock={setLock} />) , [cornerColors])
   const centerCubies = Array(6).fill(0).map((_, i) => <Cubie type="center" positionId={i} colors={centerColors[i]} key={"c" + i} setTurnDir={setTurnDir} setActiveCubie={setActiveCubie} setLock={setLock} />)
   
+  // Set the active face when the active cubie changes
   useEffect(() => {
     const centerFaces = ["U", "D", "F", "B", "L", "R"]
     const edgeFaces = ["UF", "RU", "UB", "LU", "DF", "RD", "DB", "LD", "RF", "LF", "RB", "LB"]
@@ -136,13 +137,13 @@ function InteractiveCube({setLock, cubeData, setCubeData}: {setLock: (lock: bool
     ["none" , []]])
 
   const faceCorners = new Map([ 
-        ["U", [0,  1,  2,  3]],
-        ["D", [4,  5,  6,  7]],
-        ["F", [0,  3,  5,  4]],
-        ["B", [2,  1,  7,  6]],
-        ["L", [3,  2,  6,  5]],
-        ["R", [1,  0,  4,  7]],
-        ["none" , []]])
+    ["U", [0,  1,  2,  3]],
+    ["D", [4,  5,  6,  7]],
+    ["F", [0,  3,  5,  4]],
+    ["B", [2,  1,  7,  6]],
+    ["L", [3,  2,  6,  5]],
+    ["R", [1,  0,  4,  7]],
+    ["none" , []]])
 
   const faceInds = new Map([["U", 0], ["D", 1], ["F", 2], ["B", 3], ["L", 4], ["R", 5]])
 
@@ -150,6 +151,8 @@ function InteractiveCube({setLock, cubeData, setCubeData}: {setLock: (lock: bool
   const corners = faceCorners.get(activeFace)!
   const faceInd = faceInds.get(activeFace)!
 
+  
+  // Actually change the position of colors if the turn goes beyond 45 degrees
   const handlePointerUp = (event: MouseEvent) => {
     event.stopPropagation()
     setActiveCubie("none")

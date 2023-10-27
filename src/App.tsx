@@ -1,13 +1,12 @@
 import { Canvas } from '@react-three/fiber'
-import InteractiveCube from './InteractiveCube'
-
 import { OrbitControls } from '@react-three/drei'
 import { OrbitControls as OC } from 'three-stdlib'
 import { useRef, useState, useEffect } from 'react'
-import AnimatedCube from './AnimatedCube'
-import { AnimRef } from './AnimatedCube'
-import BlankCube from './BlankCube'
 
+import BlankCube from './BlankCube'
+import InteractiveCube from './InteractiveCube'
+import AnimatedCube, { AnimRef } from './AnimatedCube'
+import * as THREE from 'three'
 
 function App() {
   const seq = Array(6).fill(0).map(_ => ["R", "U", "R'", "U'"]).flat()
@@ -66,6 +65,8 @@ function App() {
     }
   }  
 
+  const defCameraPos = new THREE.Vector3(3, 3, 3)
+
   return (
     <>
       <h1>Rubiks Cube Solver</h1>
@@ -86,8 +87,8 @@ function App() {
       
       <button onClick={reset}>Reset</button>
       <div style={{ height: '80vh', width: '100vw', cursor: 'pointer' }}>
-        <Canvas >
-          <OrbitControls minPolarAngle={0} maxPolarAngle={Math.PI} ref={controlRef} enablePan={false} enableZoom={false}/>
+        <Canvas camera={{ position: [3, 3, 3] }} >
+          <OrbitControls minPolarAngle={0} maxPolarAngle={Math.PI} position0={defCameraPos} ref={controlRef} enablePan={false} enableZoom={false}/>
           <ambientLight intensity={0.5}/>
           {mode === "interactive" && <InteractiveCube cubeData={cubeData} setLock={setLock} setCubeData={setCubeData}/> }
           {mode === "animation" && <AnimatedCube cubeData={cubeData} sequence={sequence} ref={animRef}/> }
