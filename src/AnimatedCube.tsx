@@ -132,6 +132,7 @@ const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, stri
   useImperativeHandle(ref, () => {
     return {
       repeatAnimation() {
+        if (activeFace === "none") return
         setRepeat(true)
       }, 
       completeAnimation,
