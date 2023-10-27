@@ -50,7 +50,6 @@ function App() {
       } else {
         setBackDisable(false)
       }
-      console.log(animRef.current.step + 1)
     }
   }
 
@@ -64,7 +63,6 @@ function App() {
       } else {
         setForDisable(false)
       }
-      console.log(animRef.current.step - 1)
     }
   }  
 
