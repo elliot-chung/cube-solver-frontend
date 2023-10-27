@@ -1,17 +1,24 @@
 import { Group } from 'three'
-import { useState, useRef, forwardRef, useMemo, useEffect, useImperativeHandle } from 'react'
+import { useState, useRef, forwardRef, useMemo, useImperativeHandle } from 'react'
 import { useFrame } from '@react-three/fiber'
 
 export type AnimRef = {
   repeatAnimation: () => void
+  completeAnimation: () => void
+  rollback: () => void
+  stepforward: () => void
+  step: number
 }
 
-const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, string]>, step: number, sequence: Array<string> }>(function AnimatedCube({ cubeData, step, sequence }, ref) {
-  if (cubeData.length === 0) return null
-  
+const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, string]>, sequence: Array<string> }>(function AnimatedCube({ cubeData, sequence }, ref) {
+
+
   const [activeFace, setActiveFace] = useState<string>("none")
   const [turnDir, setTurnDir] = useState<number>(0)
-
+  const [repeat, setRepeat] = useState<boolean>(false)
+  const [proceed, setProceed] = useState<boolean>(false)
+  const [step, setStep] = useState<number>(0)
+  
   const faceRef = useRef<Group>(null)
   
   const edgeRefs = Array(12).fill(0).map(_ => useRef<Group>(null))
@@ -49,8 +56,9 @@ const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, stri
   const corners = faceCorners.get(activeFace)!
 
   const completeAnimation = () => {
+    if (activeFace === "none") return
     if(faceRef.current) {
-      const rotation = 4 - turnDir
+      const rotation = 4 - turnDir 
 
       const anchor = activeFace === "U" || activeFace === "D" ? 1 : activeFace === "F" || activeFace === "B" ? 2 : 0
 
@@ -61,7 +69,7 @@ const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, stri
           const swap1 = (anchor + 1) % 3
           const swap2 = (anchor + 2) % 3
           const tmp = colors[swap1]
-          if (rotation !== 2) {
+          if (rotation !== 2 && rotation !== 4) {
             colors[swap1] = colors[swap2]
             colors[swap2] = tmp
           }
@@ -85,26 +93,58 @@ const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, stri
         return newColors
       })
     }
+    setActiveFace("none")
+    setTurnDir(0)
+    if (faceRef.current) { 
+      faceRef.current.userData.rotation = 0
+      faceRef.current.rotation.set(0, 0, 0)
+    }
+  }
+
+  const rollback = () => {
+    if (step === 0) return
+    const move = sequence[step - 1]
+
+    setProceed(true)
+    setActiveFace(move[0])
+    setTurnDir(move.length === 1 ? -1 : move[1] === "'" ? 1 : 2)
+    setStep(step - 1)
+  }
+
+  const stepforward = () => {
+    if (step === sequence.length) return
+    const move = sequence[step]
+    
+    setProceed(true)
+    setActiveFace(move[0])
+    setTurnDir(move.length === 1 ? 1 : move[1] === "'" ? -1 : 2)
+    setStep(step + 1)
   }
 
   useImperativeHandle(ref, () => {
     return {
       repeatAnimation() {
-        console.log("repeat")
-        // TODO
-      }
+        setRepeat(true)
+      }, 
+      completeAnimation,
+      rollback,
+      stepforward,
+      step: step
     }
-  }, [])
-
-  useEffect(() => {
-    const move = sequence[step]
-    setActiveFace(move[0])
-    setTurnDir(move.length === 1 ? 1 : move[1] === "'" ? -1 : 2)
-  }, [step, sequence])
+  }, [step, completeAnimation, rollback, stepforward])
 
   useFrame(() => {
     if (turnDir === 0) return 
     if (faceRef.current) {
+      if (Math.abs(faceRef.current.userData.rotation) >= Math.abs(turnDir * Math.PI / 2)) {
+        if (repeat) {
+          faceRef.current.userData.rotation = 0
+          faceRef.current.rotation.set(0, 0, 0)
+          setRepeat(false)
+        }
+        return
+      }
+      if (!repeat && !proceed) return
       if (activeFace === "U") {
         faceRef.current.rotation.y -= 0.01 * turnDir
         faceRef.current.userData.rotation = faceRef.current.rotation.y
@@ -124,17 +164,12 @@ const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, stri
         faceRef.current.rotation.x -= 0.01 * turnDir
         faceRef.current.userData.rotation = faceRef.current.rotation.x
       }
-      if (Math.abs(faceRef.current.userData.rotation) >= Math.abs(turnDir * Math.PI / 2)) {
-        completeAnimation()
-        setTurnDir(0)
-        setActiveFace("none")
-      }
     } 
   }, )
 
   
   return (<>
-    {activeFace !== "none" && <group ref={faceRef} name={activeFace}>
+    {<group ref={faceRef} name={activeFace}>
       {edgeCubies.filter((_, i) => edges.includes(i))}
       {cornerCubies.filter((_, i) => corners.includes(i))}
     </group>}
