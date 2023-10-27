@@ -54,6 +54,9 @@ function BlankCube({ setCubeData, activeColor }: { setCubeData: (cubeData: Array
   const cornerCubies = useMemo(() => Array(8).fill(0).map((_, i) => <Cubie type="corner" positionId={i} colors={cornerColors[i]} key={"c" + i}  setColor={(axis: string) => setColor("corner", i, axis)} />) , [cornerColors, activeColor])
   const centerCubies = Array(6).fill(0).map((_, i) => <Cubie type="center" positionId={i} colors={centerColors[i]} key={"m" + i} />)
   
+  useEffect(() => {
+    setCubeData([...edgeColors, ...cornerColors])
+  }, [edgeColors, cornerColors])
 
   return (<>
     {edgeCubies}
