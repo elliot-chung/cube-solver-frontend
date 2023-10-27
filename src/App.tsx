@@ -6,7 +6,6 @@ import { useRef, useState, useEffect } from 'react'
 import BlankCube from './BlankCube'
 import InteractiveCube from './InteractiveCube'
 import AnimatedCube, { AnimRef } from './AnimatedCube'
-import * as THREE from 'three'
 
 function App() {
   const seq = Array(6).fill(0).map(_ => ["R", "U", "R'", "U'"]).flat()
@@ -65,12 +64,24 @@ function App() {
     }
   }  
 
-  const defCameraPos = new THREE.Vector3(3, 3, 3)
+  const solve = async () => {
+    setMode("loading")
+    const data = await fetch("http://localhost:8080/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(cubeData)
+    })
+    const res = await data.json()
+    setSequence(res)
+    setMode("animation")
+  }
 
   return (
     <>
       <h1>Rubiks Cube Solver</h1>
-      {mode !== "animation" && <button onClick={() => setMode("animation")}>Toggle Interactivity</button>}
+      {mode !== "animation" && <button onClick={solve}>Solve</button>}
       
       {mode === "interactive" && <button onClick={() => setMode("input")}>Toggle Input Mode</button>}
 
@@ -88,10 +99,10 @@ function App() {
       <button onClick={reset}>Reset</button>
       <div style={{ height: '80vh', width: '100vw', cursor: 'pointer' }}>
         <Canvas camera={{ position: [3, 3, 3] }} >
-          <OrbitControls minPolarAngle={0} maxPolarAngle={Math.PI} position0={defCameraPos} ref={controlRef} enablePan={false} enableZoom={false}/>
+          <OrbitControls minPolarAngle={0} maxPolarAngle={Math.PI} ref={controlRef} enablePan={false} enableZoom={false}/>
           <ambientLight intensity={0.5}/>
           {mode === "interactive" && <InteractiveCube cubeData={cubeData} setLock={setLock} setCubeData={setCubeData}/> }
-          {mode === "animation" && <AnimatedCube cubeData={cubeData} sequence={sequence} ref={animRef}/> }
+          {(mode === "animation" || mode === "loading") && <AnimatedCube cubeData={cubeData} sequence={sequence} ref={animRef}/> }
           {mode === "input" && <BlankCube setCubeData={setCubeData} activeColor={activeColor} />}
         </Canvas>
       </div>
