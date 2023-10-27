@@ -26,13 +26,19 @@ const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, stri
 
   const iEdgeColors:Array<[string, string, string]> = cubeData.slice(0, 12)
   const iCornerColors:Array<[string, string, string]> = cubeData.slice(12, 20)
+  const centerColors: Array<[string, string, string]> = [["blue", "blue", "blue"],
+                                                         ["green", "green", "green"],
+                                                         ["yellow", "yellow", "yellow"],
+                                                         ["white", "white", "white"],
+                                                         ["red", "red", "red"],
+                                                         ["orange", "orange", "orange"]]
 
   const [edgeColors, setEdgeColors] = useState<Array<[string, string, string]>>(iEdgeColors)
   const [cornerColors, setCornerColors] = useState<Array<[string, string, string]>>(iCornerColors)
 
-  const edgeCubies = useMemo(() => Array(12).fill(0).map((_, i) => <Cubie isCorner={false} positionId={i} colors={edgeColors[i]} key={"e" + i} ref={edgeRefs[i]}/>), [edgeColors])
-  const cornerCubies = useMemo(() => Array(8).fill(0).map((_, i) => <Cubie isCorner={true} positionId={i} colors={cornerColors[i]} key={"c" + i} ref={cornerRefs[i]}/>) , [cornerColors])
-
+  const edgeCubies = useMemo(() => Array(12).fill(0).map((_, i) => <Cubie type="edge" positionId={i} colors={edgeColors[i]} key={"e" + i} ref={edgeRefs[i]}/>), [edgeColors])
+  const cornerCubies = useMemo(() => Array(8).fill(0).map((_, i) => <Cubie type="corner" positionId={i} colors={cornerColors[i]} key={"c" + i} ref={cornerRefs[i]}/>) , [cornerColors])
+  const centerCubies = Array(6).fill(0).map((_, i) => <Cubie type="center" positionId={i} colors={centerColors[i]} key={"c" + i} />)
 
   const faceEdges = new Map([
     ["U", [0,  1,  2,  3]],
@@ -51,9 +57,11 @@ const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, stri
         ["L", [3,  2,  6,  5]],
         ["R", [1,  0,  4,  7]],
         ["none" , []]])
+  const faceCenters = new Map([["U", 0], ["D", 1], ["F", 2], ["B", 3], ["L", 4], ["R", 5], ["none", -1]])
 
   const edges = faceEdges.get(activeFace)!
   const corners = faceCorners.get(activeFace)!
+  const center = faceCenters.get(activeFace)!
 
   const completeAnimation = () => {
     if (activeFace === "none") return
@@ -172,15 +180,26 @@ const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, stri
     {<group ref={faceRef} name={activeFace}>
       {edgeCubies.filter((_, i) => edges.includes(i))}
       {cornerCubies.filter((_, i) => corners.includes(i))}
+      {centerCubies.filter((_, i) => i === center)}
     </group>}
     {edgeCubies.filter((_, i) => !edges.includes(i))}
     {cornerCubies.filter((_, i) => !corners.includes(i))}
+    {centerCubies.filter((_, i) => i !== center)}
   </>)
 })
 
-const Cubie = forwardRef(function Cubie({ positionId, isCorner, colors }: 
-                                        { positionId: number, isCorner: boolean, 
+const Cubie = forwardRef(function Cubie({ positionId, type, colors }: 
+                                        { positionId: number, type: string, 
                                           colors: [string, string, string]}, ref: any) {
+  const isCorner = type === "corner"
+  const isCenter = type === "center"
+  const centerPos: Array<[number, number, number]> = 
+                                                    [[0, 1, 0],
+                                                     [0, -1, 0],
+                                                     [0, 0, 1],
+                                                     [0, 0, -1],
+                                                     [-1, 0, 0],
+                                                     [1, 0, 0]]
   const edgePos: Array<[number, number, number]> = 
                   [[0, 1, 1],
                    [1, 1, 0],
@@ -204,9 +223,9 @@ const Cubie = forwardRef(function Cubie({ positionId, isCorner, colors }:
                     [-1, -1, -1],
                     [1, -1, -1]]
   
-  const x = isCorner ? cornerPos[positionId][0] : edgePos[positionId][0]
-  const y = isCorner ? cornerPos[positionId][1] : edgePos[positionId][1]
-  const z = isCorner ? cornerPos[positionId][2] : edgePos[positionId][2]
+  const x = (isCorner && !isCenter) ? cornerPos[positionId][0] : isCenter ? centerPos[positionId][0] : edgePos[positionId][0]
+  const y = (isCorner && !isCenter) ? cornerPos[positionId][1] : isCenter ? centerPos[positionId][1] : edgePos[positionId][1]
+  const z = (isCorner && !isCenter) ? cornerPos[positionId][2] : isCenter ? centerPos[positionId][2] : edgePos[positionId][2]
 
   const xc1 = 0.06 * x
   const yc1 = 0
