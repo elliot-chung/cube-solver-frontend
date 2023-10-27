@@ -9,7 +9,7 @@ import { AnimRef } from './AnimatedCube'
 
 
 function App() {
-  const seq = Array(6).fill(0).map(_ => ["R", "U", "F", "B'"]).flat()
+  const seq = Array(6).fill(0).map(_ => ["R", "U", "R'", "U'"]).flat()
   const animRef = useRef<AnimRef>(null)
   const controlRef = useRef<OC>(null)
 
@@ -63,10 +63,7 @@ function App() {
       }
       console.log(animRef.current.step - 1)
     }
-  }
-
-  
-  
+  }  
 
   return (
     <>

@@ -1,5 +1,5 @@
 import { Group } from 'three'
-import { useState, useRef, useEffect, forwardRef, useMemo } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { ThreeEvent, useFrame } from '@react-three/fiber'
 
 function InteractiveCube({setLock, cubeData, setCubeData}: {setLock: (lock: boolean) => void, cubeData:Array<[string, string, string]>, setCubeData: (cubeData: Array<[string, string, string]>) => void}) {
@@ -8,9 +8,6 @@ function InteractiveCube({setLock, cubeData, setCubeData}: {setLock: (lock: bool
   const [turnDir, setTurnDir] = useState<string>("none")
 
   const faceRef = useRef<Group>(null)
-  
-  const edgeRefs = Array(12).fill(0).map(_ => useRef<Group>(null))
-  const cornerRefs = Array(8).fill(0).map(_ => useRef<Group>(null))
 
   const solvedEdgeColors:Array<[string, string, string]> = [["purple", "blue", "yellow"],
                                                        ["orange", "blue", "purple"],
@@ -48,8 +45,8 @@ function InteractiveCube({setLock, cubeData, setCubeData}: {setLock: (lock: bool
     }
   }, [cubeData])
 
-  const edgeCubies = useMemo(() => Array(12).fill(0).map((_, i) => <Cubie isCorner={false} positionId={i} colors={edgeColors[i]} key={"e" + i} setTurnDir={setTurnDir} setActiveCubie={setActiveCubie} setLock={setLock} ref={edgeRefs[i]}/>), [edgeColors])
-  const cornerCubies = useMemo(() => Array(8).fill(0).map((_, i) => <Cubie isCorner={true} positionId={i} colors={cornerColors[i]} key={"c" + i} setTurnDir={setTurnDir} setActiveCubie={setActiveCubie} setLock={setLock} ref={cornerRefs[i]}/>) , [cornerColors])
+  const edgeCubies = useMemo(() => Array(12).fill(0).map((_, i) => <Cubie isCorner={false} positionId={i} colors={edgeColors[i]} key={"e" + i} setTurnDir={setTurnDir} setActiveCubie={setActiveCubie} setLock={setLock} />), [edgeColors])
+  const cornerCubies = useMemo(() => Array(8).fill(0).map((_, i) => <Cubie isCorner={true} positionId={i} colors={cornerColors[i]} key={"c" + i} setTurnDir={setTurnDir} setActiveCubie={setActiveCubie} setLock={setLock} />) , [cornerColors])
 
   
   useEffect(() => {
@@ -240,12 +237,12 @@ function InteractiveCube({setLock, cubeData, setCubeData}: {setLock: (lock: bool
   </>)
 }
 
-const Cubie = forwardRef(function Cubie({ positionId, isCorner, setActiveCubie, setTurnDir, setLock, colors }: 
+function Cubie({ positionId, isCorner, setActiveCubie, setTurnDir, setLock, colors }: 
                                         { positionId: number, isCorner: boolean, 
                                           setActiveCubie: (cubie: string) => void, 
                                           setTurnDir: (dir: string) => void,
                                           setLock: (lock: boolean) => void,
-                                          colors: [string, string, string]}, ref: any) {
+                                          colors: [string, string, string]}) {
     const edgePos: Array<[number, number, number]> = 
                   [[0, 1, 1],
                    [1, 1, 0],
@@ -305,7 +302,7 @@ const Cubie = forwardRef(function Cubie({ positionId, isCorner, setActiveCubie, 
   }
 
   return (
-    <group ref={ref} position={[x, y, z]}>
+    <group position={[x, y, z]}>
       <mesh onPointerDown={handlePointerDown} name="x" position={[xc1, yc1, zc1]}>
         <boxGeometry args={[.9, .9, .9]} />
         <meshStandardMaterial color={colors[0]}/>
@@ -324,7 +321,7 @@ const Cubie = forwardRef(function Cubie({ positionId, isCorner, setActiveCubie, 
       </mesh>
     </group>
   )
-})
+}
 
 
 export default InteractiveCube
