@@ -8,14 +8,13 @@ import InteractiveCube from './InteractiveCube'
 import AnimatedCube, { AnimRef } from './AnimatedCube'
 
 function App() {
-  const seq = Array(6).fill(0).map(_ => ["R", "U", "R'", "U'"]).flat()
   const animRef = useRef<AnimRef>(null)
   const controlRef = useRef<OC>(null)
 
   const [lock, setLock] = useState(false)
   const [mode, setMode] = useState("interactive")
   const [cubeData, setCubeData] = useState<Array<[string, string, string]>>([])
-  const [sequence, setSequence] = useState<Array<string>>(seq)
+  const [sequence, setSequence] = useState<Array<string>>([])
 
   const [activeColor, setActiveColor] = useState("blue")
 
@@ -74,14 +73,25 @@ function App() {
       body: JSON.stringify(cubeData)
     })
     const res = await data.json()
+    
+    if (typeof res === "string") {
+      alert(res)
+      setMode("input")
+      return
+    }
+
     setSequence(res)
     setMode("animation")
   }
 
+  useEffect(() => {
+    setForDisable(sequence.length === 0)
+  }, [sequence])
+
   return (
     <>
       <h1>Rubiks Cube Solver</h1>
-      {mode !== "animation" && <button onClick={solve}>Solve</button>}
+      {(mode === "interactive" || mode === "input") && <button onClick={solve}>Solve</button>}
       
       {mode === "interactive" && <button onClick={() => setMode("input")}>Toggle Input Mode</button>}
 
