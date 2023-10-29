@@ -1,5 +1,5 @@
 import { Group } from 'three'
-import { useState, useRef, forwardRef, useMemo, useImperativeHandle } from 'react'
+import { useState, useRef, forwardRef, useMemo, useImperativeHandle, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 
 export type AnimRef = {
@@ -9,7 +9,15 @@ export type AnimRef = {
   step: number
 }
 
-const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, string]>, sequence: Array<string> }>(function AnimatedCube({ cubeData, sequence }, ref) {
+type AnimatedCubeProps = { 
+  cubeData: Array<[string, string, string]>, 
+  setCubeData: (cubeData: Array<[string, string, string]>) => void,
+  sequence: Array<string>, 
+  playFull: boolean 
+  finishSequence?: () => void
+}
+
+const AnimatedCube = forwardRef<AnimRef, AnimatedCubeProps>(function AnimatedCube({ cubeData, setCubeData, sequence, playFull, finishSequence }, ref) {
   const [activeFace, setActiveFace] = useState<string>("none")
   const [turnDir, setTurnDir] = useState<number>(0)
   const [repeat, setRepeat] = useState<boolean>(false)
@@ -17,12 +25,11 @@ const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, stri
   const [step, setStep] = useState<number>(0)
   
   const faceRef = useRef<Group>(null)
-  
-  const edgeRefs = Array(12).fill(0).map(_ => useRef<Group>(null))
-  const cornerRefs = Array(8).fill(0).map(_ => useRef<Group>(null))
 
-  const iEdgeColors:Array<[string, string, string]> = cubeData.slice(0, 12)
-  const iCornerColors:Array<[string, string, string]> = cubeData.slice(12, 20)
+  const turnSpeed = playFull ? 6 : 1.5
+
+  const iEdgeColors: Array<[string, string, string]> = useMemo(() => cubeData.slice(0, 12), [])
+  const iCornerColors: Array<[string, string, string]> = useMemo(() => cubeData.slice(12, 20), [])
   const centerColors: Array<[string, string, string]> = [["blue", "blue", "blue"],
                                                          ["green", "green", "green"],
                                                          ["yellow", "yellow", "yellow"],
@@ -33,8 +40,8 @@ const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, stri
   const [edgeColors, setEdgeColors] = useState<Array<[string, string, string]>>(iEdgeColors)
   const [cornerColors, setCornerColors] = useState<Array<[string, string, string]>>(iCornerColors)
 
-  const edgeCubies = useMemo(() => Array(12).fill(0).map((_, i) => <Cubie type="edge" positionId={i} colors={edgeColors[i]} key={"e" + i} ref={edgeRefs[i]}/>), [edgeColors])
-  const cornerCubies = useMemo(() => Array(8).fill(0).map((_, i) => <Cubie type="corner" positionId={i} colors={cornerColors[i]} key={"c" + i} ref={cornerRefs[i]}/>) , [cornerColors])
+  const edgeCubies = useMemo(() => Array(12).fill(0).map((_, i) => <Cubie type="edge" positionId={i} colors={edgeColors[i]} key={"e" + i} />), [edgeColors])
+  const cornerCubies = useMemo(() => Array(8).fill(0).map((_, i) => <Cubie type="corner" positionId={i} colors={cornerColors[i]} key={"c" + i} />) , [cornerColors])
   const centerCubies = Array(6).fill(0).map((_, i) => <Cubie type="center" positionId={i} colors={centerColors[i]} key={"c" + i} />)
 
   const faceEdges = new Map([
@@ -143,7 +150,16 @@ const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, stri
   useFrame(() => {
     if (turnDir === 0) return 
     if (faceRef.current) {
-      if (Math.abs(faceRef.current.userData.rotation) >= Math.abs(turnDir * Math.PI / 2)) {
+      if (Math.abs(faceRef.current.userData.rotation) >= Math.abs(turnDir) * Math.PI / 2) {
+        if (playFull) {
+          if (step !== sequence.length) {
+            stepforward()
+            return
+          } else {
+            completeAnimation()
+            return
+          }
+        }
         if (repeat) {
           faceRef.current.userData.rotation = 0
           faceRef.current.rotation.set(0, 0, 0)
@@ -153,26 +169,40 @@ const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, stri
       }
       if (!repeat && !proceed) return
       if (activeFace === "U") {
-        faceRef.current.rotation.y -= 0.01 * turnDir
+        faceRef.current.rotation.y -= 0.01 * turnDir * turnSpeed
         faceRef.current.userData.rotation = faceRef.current.rotation.y
-      } else if (activeFace === "D") {
-        faceRef.current.rotation.y += 0.01 * turnDir
+      } else if (activeFace === "D") { 
+        faceRef.current.rotation.y += 0.01 * turnDir * turnSpeed
         faceRef.current.userData.rotation = faceRef.current.rotation.y
       } else if (activeFace === "F") {
-        faceRef.current.rotation.z -= 0.01 * turnDir
+        faceRef.current.rotation.z -= 0.01 * turnDir * turnSpeed
         faceRef.current.userData.rotation = faceRef.current.rotation.z
       } else if ( activeFace === "B") {
-        faceRef.current.rotation.z += 0.01 * turnDir
+        faceRef.current.rotation.z += 0.01 * turnDir * turnSpeed
         faceRef.current.userData.rotation = faceRef.current.rotation.z
       } else if (activeFace === "L") {
-        faceRef.current.rotation.x += 0.01 * turnDir
+        faceRef.current.rotation.x += 0.01 * turnDir * turnSpeed
         faceRef.current.userData.rotation = faceRef.current.rotation.x
       } else if (activeFace === "R") {
-        faceRef.current.rotation.x -= 0.01 * turnDir
+        faceRef.current.rotation.x -= 0.01 * turnDir * turnSpeed
         faceRef.current.userData.rotation = faceRef.current.rotation.x
       }
     } 
-  }, )
+  })
+
+  useEffect(() => {
+    if (playFull) {
+      stepforward()
+    }
+  }, [sequence])
+
+  useEffect(() => {
+    if (playFull && step === sequence.length) {
+      const cubeData = edgeColors.concat(cornerColors)
+      setCubeData(cubeData)
+      finishSequence ? finishSequence() : console.log("finishSequence not defined")
+    }
+  }, [edgeColors, cornerColors])
 
   
   return (<>
@@ -187,9 +217,9 @@ const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, stri
   </>)
 })
 
-const Cubie = forwardRef(function Cubie({ positionId, type, colors }: 
+function Cubie({ positionId, type, colors }: 
                                         { positionId: number, type: string, 
-                                          colors: [string, string, string]}, ref: any) {
+                                          colors: [string, string, string]}) {
   const isCorner = type === "corner"
   const isCenter = type === "center"
   const centerPos: Array<[number, number, number]> = 
@@ -239,7 +269,7 @@ const Cubie = forwardRef(function Cubie({ positionId, type, colors }:
   const zc3 = 0.06 * z
 
   return (
-    <group ref={ref} position={[x, y, z]}>
+    <group position={[x, y, z]}>
       <mesh name="x" position={[xc1, yc1, zc1]}>
         <boxGeometry args={[.9, .9, .9]} />
         <meshStandardMaterial color={colors[0]}/>
@@ -258,7 +288,6 @@ const Cubie = forwardRef(function Cubie({ positionId, type, colors }:
       </mesh>
     </group>
   )
-})
-
-
+}
+  
 export default AnimatedCube

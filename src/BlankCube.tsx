@@ -1,7 +1,12 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { ThreeEvent } from '@react-three/fiber'
 
-function BlankCube({ setCubeData, activeColor }: { setCubeData: (cubeData: Array<[string, string, string]>) => void, activeColor: string}) {
+type BlankCubeProps = {
+  setCubeData: (cubeData: Array<[string, string, string]>) => void
+  activeColor: string
+}
+
+function BlankCube({ setCubeData, activeColor }: BlankCubeProps) {
 
   const centerColors: Array<[string, string, string]> = [["blue", "blue", "blue"],
                                                          ["green", "green", "green"],
@@ -65,7 +70,15 @@ function BlankCube({ setCubeData, activeColor }: { setCubeData: (cubeData: Array
   </>)
 }
 
-function Cubie({ positionId, type, colors, setColor=() => {} }: { positionId: number, type: string, colors:[string, string, string], setColor?: (color: string) => void }) {
+type CubieProps = {
+  positionId: number
+  type: string
+  colors: [string, string, string]
+  setColor?: (color: string) => void
+}
+
+
+function Cubie({ positionId, type, colors, setColor=() => {} }: CubieProps) {
    const isCenter = type === "center"  
    const isCorner = type === "corner"
    const centerPos: Array<[number, number, number]> = [[0, 1, 0],

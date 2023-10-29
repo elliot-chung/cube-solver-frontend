@@ -2,7 +2,13 @@ import { Group } from 'three'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { ThreeEvent, useFrame } from '@react-three/fiber'
 
-function InteractiveCube({setLock, cubeData, setCubeData}: {setLock: (lock: boolean) => void, cubeData:Array<[string, string, string]>, setCubeData: (cubeData: Array<[string, string, string]>) => void}) {
+type InteractiveCubeProps = {
+  setLock: (lock: boolean) => void
+  cubeData: Array<[string, string, string]>
+  setCubeData: (cubeData: Array<[string, string, string]>) => void
+}
+
+function InteractiveCube({setLock, cubeData, setCubeData}: InteractiveCubeProps) {
   const [activeFace, setActiveFace] = useState<string>("none")
   const [activeCubie, setActiveCubie] = useState<string>("none")
   const [turnDir, setTurnDir] = useState<string>("none")
@@ -255,45 +261,44 @@ function InteractiveCube({setLock, cubeData, setCubeData}: {setLock: (lock: bool
   </>)
 }
 
-function Cubie({ positionId, type, setActiveCubie, setTurnDir, setLock, colors }: 
-                                        { positionId: number, type: string, 
-                                          setActiveCubie: (cubie: string) => void, 
-                                          setTurnDir: (dir: string) => void,
-                                          setLock: (lock: boolean) => void,
-                                          colors: [string, string, string]}) {
-   
+type CubieProps = { 
+  positionId: number, type: string, 
+  setActiveCubie: (cubie: string) => void, 
+  setTurnDir: (dir: string) => void,
+  setLock: (lock: boolean) => void,
+  colors: [string, string, string]
+}
+
+function Cubie({ positionId, type, setActiveCubie, setTurnDir, setLock, colors }: CubieProps) {
    const isCenter = type === "center"  
    const isCorner = type === "corner"
-   const centerPos: Array<[number, number, number]> = 
-                                                    [[0, 1, 0],
-                                                     [0, -1, 0],
-                                                     [0, 0, 1],
-                                                     [0, 0, -1],
-                                                     [-1, 0, 0],
-                                                     [1, 0, 0]]
+   const centerPos: Array<[number, number, number]> = [[0, 1, 0],
+                                                       [0, -1, 0],
+                                                       [0, 0, 1],
+                                                       [0, 0, -1],
+                                                       [-1, 0, 0],
+                                                       [1, 0, 0]]
 
-   const edgePos: Array<[number, number, number]> = 
-                                                    [[0, 1, 1],
-                                                    [1, 1, 0],
-                                                    [0, 1, -1],
-                                                    [-1, 1, 0], 
-                                                    [0, -1, 1], 
-                                                    [1, -1, 0], 
-                                                    [0, -1, -1], 
-                                                    [-1, -1, 0],
-                                                    [1, 0, 1], 
-                                                    [-1, 0, 1],
-                                                    [1, 0, -1],
-                                                    [-1, 0, -1]]
-  const cornerPos: Array<[number, number, number]> = 
-                                                    [[1, 1, 1],
-                                                    [1, 1, -1],
-                                                    [-1, 1, -1],
-                                                    [-1, 1, 1],
-                                                    [1, -1, 1],
-                                                    [-1, -1, 1],
-                                                    [-1, -1, -1],
-                                                    [1, -1, -1]]
+   const edgePos: Array<[number, number, number]> = [[0, 1, 1],
+                                                     [1, 1, 0],
+                                                     [0, 1, -1],
+                                                     [-1, 1, 0], 
+                                                     [0, -1, 1], 
+                                                     [1, -1, 0], 
+                                                     [0, -1, -1], 
+                                                     [-1, -1, 0],
+                                                     [1, 0, 1], 
+                                                     [-1, 0, 1],
+                                                     [1, 0, -1],
+                                                     [-1, 0, -1]]
+  const cornerPos: Array<[number, number, number]> = [[1, 1, 1],
+                                                      [1, 1, -1],
+                                                      [-1, 1, -1],
+                                                      [-1, 1, 1],
+                                                      [1, -1, 1],
+                                                      [-1, -1, 1],
+                                                      [-1, -1, -1],
+                                                      [1, -1, -1]]
 
   const x = (isCorner && !isCenter) ? cornerPos[positionId][0] : isCenter ? centerPos[positionId][0] : edgePos[positionId][0]
   const y = (isCorner && !isCenter) ? cornerPos[positionId][1] : isCenter ? centerPos[positionId][1] : edgePos[positionId][1]

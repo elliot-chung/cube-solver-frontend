@@ -26,6 +26,7 @@ function App() {
 
   const reset = () => {
     setCubeData([])
+    setSequence([])
     setMode("interactive")
     setBackDisable(true)
     setForDisable(sequence.length === 0)
@@ -86,12 +87,33 @@ function App() {
     setForDisable(sequence.length === 0)
   }, [sequence])
 
+  useEffect(() => {
+    console.log(cubeData)
+  }, [cubeData])
+
+  const scramble = () => {
+    const moves = ["F", "B", "R", "L", "U", "D"]
+    const scramble = []
+    for (let i = 0; i < 20; i++) {
+      const move = moves[Math.floor(Math.random() * moves.length)]
+      const dir = Math.random() > 0.5 ? "" : "'"
+      scramble.push(move + dir)
+    }
+    setSequence(scramble)
+    setMode("scramble")
+  }
+
+  const finishScramble = () => {
+    setMode("interactive")
+  }
+
   return (
     <>
       <h1>Rubiks Cube Solver</h1>
       {(mode === "interactive" || mode === "input") && <button onClick={solve}>Solve</button>}
       
       {mode === "interactive" && <button onClick={() => setMode("input")}>Toggle Input Mode</button>}
+      {mode === "interactive" && <button onClick={scramble}>Scramble</button> }
 
       {mode === "animation" && <button onClick={stepBackward} disabled={backDisable} >Previous</button>}
       {mode === "animation" && <button onClick={stepForward} disabled={forDisable}>Next</button>}
@@ -110,8 +132,9 @@ function App() {
           <OrbitControls minPolarAngle={0} maxPolarAngle={Math.PI} ref={controlRef} enablePan={false} enableZoom={false}/>
           <ambientLight intensity={0.5}/>
           {mode === "interactive" && <InteractiveCube cubeData={cubeData} setLock={setLock} setCubeData={setCubeData}/> }
-          {(mode === "animation" || mode === "loading") && <AnimatedCube cubeData={cubeData} sequence={sequence} ref={animRef}/> }
+          {(mode === "animation" || mode === "loading") && <AnimatedCube cubeData={cubeData} sequence={sequence} playFull={false} ref={animRef} setCubeData={setCubeData}/> }
           {mode === "input" && <BlankCube setCubeData={setCubeData} activeColor={activeColor} />}
+          {mode === "scramble" && <AnimatedCube cubeData={cubeData} sequence={sequence} playFull={true} finishSequence={finishScramble} ref={animRef} setCubeData={setCubeData}/> }
         </Canvas>
       </div>
     </>
