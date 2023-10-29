@@ -40,7 +40,6 @@ function App() {
   const [forDisable, setForDisable] = useState(sequence.length === 0)
   const stepForward = () => {
     if (animRef.current) {
-      animRef.current.completeAnimation()
       animRef.current.stepforward()
       if(animRef.current.step + 1 === sequence.length) {
         setForDisable(true)
@@ -53,7 +52,6 @@ function App() {
   const [backDisable, setBackDisable] = useState(true)
   const stepBackward = () => {
     if (animRef.current) {
-      animRef.current.completeAnimation()
       animRef.current.rollback()
       if(animRef.current.step - 1 === 0) {
         setBackDisable(true)

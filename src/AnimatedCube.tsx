@@ -4,15 +4,12 @@ import { useFrame } from '@react-three/fiber'
 
 export type AnimRef = {
   repeatAnimation: () => void
-  completeAnimation: () => void
   rollback: () => void
   stepforward: () => void
   step: number
 }
 
 const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, string]>, sequence: Array<string> }>(function AnimatedCube({ cubeData, sequence }, ref) {
-
-
   const [activeFace, setActiveFace] = useState<string>("none")
   const [turnDir, setTurnDir] = useState<number>(0)
   const [repeat, setRepeat] = useState<boolean>(false)
@@ -110,6 +107,7 @@ const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, stri
   }
 
   const rollback = () => {
+    completeAnimation()
     if (step === 0) return
     const move = sequence[step - 1]
 
@@ -120,6 +118,7 @@ const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, stri
   }
 
   const stepforward = () => {
+    completeAnimation()
     if (step === sequence.length) return
     const move = sequence[step]
     
@@ -135,7 +134,6 @@ const AnimatedCube = forwardRef<AnimRef, { cubeData: Array<[string, string, stri
         if (activeFace === "none") return
         setRepeat(true)
       }, 
-      completeAnimation,
       rollback,
       stepforward,
       step: step
