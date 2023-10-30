@@ -90,7 +90,7 @@ function App() {
 
   const solve = async () => {
     setMode("loading")
-    const data = await fetch("https://solitary-mountain-3986.fly.dev/", {
+    const data = await fetch("https://cube-solver-backend.fly.dev/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
