@@ -130,104 +130,95 @@ function App() {
 
   return (
     <div className="relative h-screen w-screen bg-gray-100 dark:bg-zinc-800">
-      <div className="flex h-fit flex-row items-center justify-evenly pt-8">
+      <div className="flex h-20 flex-row items-center justify-evenly pt-2 sm:h-24 sm:pt-4 md:h-28">
         {mode === "interactive" && (
           <button
-            className="transition duration-200 hover:scale-110 active:scale-105"
+            className="h-full transition duration-200 hover:scale-110 active:scale-105"
             title="Input Mode"
             onClick={() => setMode("input")}
           >
-            <InputIcon />
+            <InputIcon className="h-full" />
           </button>
         )}
         {mode === "interactive" && (
           <button
-            className="transition duration-200 hover:scale-110 active:scale-105"
+            className="h-full transition duration-200 hover:scale-110 active:scale-105"
             title="Scramble"
             onClick={scramble}
           >
-            <ScrambleIcon />
+            <ScrambleIcon className="h-full" />
           </button>
         )}
 
         <button
-          className="transition duration-200 hover:scale-110 active:scale-105"
+          className="h-full transition duration-200 hover:scale-110 active:scale-105"
           title="Reset"
           onClick={reset}
         >
-          <ResetIcon />
+          <ResetIcon className="h-full" />
         </button>
       </div>
 
       {mode === "input" && (
-        <>
-          <div className="absolute left-20 top-1/4 flex flex-col rounded-lg bg-gray-200 shadow-lg dark:bg-gray-900">
-            <p className=" m-2 text-center text-lg font-semibold dark:text-white">
-              Current Color
-            </p>
-            {activeColor === "red" && <div className="m-4 h-16 w-32 rounded-lg bg-red-600" />}
-            {activeColor === "green" && (
-              <div className="m-4 h-16 w-32 rounded-lg bg-green-600" />
-            )}
-            {activeColor === "orange" && (
-              <div className="m-4 h-16 w-32 rounded-lg bg-orange-600" />
-            )}
-            {activeColor === "white" && <div className="m-4 h-16 w-32 rounded-lg bg-white" />}
-            {activeColor === "blue" && (
-              <div className="m-4 h-16 w-32 rounded-lg bg-blue-600" />
-            )}
-            {activeColor === "yellow" && (
-              <div className="m-4 h-16 w-32 rounded-lg bg-yellow-400" />
-            )}
-          </div>
-          <div className="absolute right-20 top-1/4 z-10 flex flex-col justify-evenly">
-            <button
-              title="red"
-              className="m-1 shadow-lg transition duration-200 hover:scale-110 active:scale-105"
-              onClick={() => setActiveColor("red")}
-            >
-              <div className="h-16 w-16 rounded-lg bg-red-600" />
-            </button>
-            <button
-              title="green"
-              className="m-1 shadow-lg transition duration-200 hover:scale-110 active:scale-105"
-              onClick={() => setActiveColor("green")}
-            >
-              <div className="h-16 w-16 rounded-lg bg-green-600" />
-            </button>
-            <button
-              title="orange"
-              className="m-1 shadow-lg transition duration-200 hover:scale-110 active:scale-105"
-              onClick={() => setActiveColor("orange")}
-            >
-              <div className="h-16 w-16 rounded-lg bg-orange-600" />
-            </button>
-            <button
-              title="white"
-              className="m-1 shadow-lg transition duration-200 hover:scale-110 active:scale-105"
-              onClick={() => setActiveColor("white")}
-            >
-              <div className="h-16 w-16 rounded-lg bg-white" />
-            </button>
-            <button
-              title="blue"
-              className="m-1 shadow-lg transition duration-200 hover:scale-110 active:scale-105"
-              onClick={() => setActiveColor("blue")}
-            >
-              <div className="h-16 w-16 rounded-lg bg-blue-600" />
-            </button>
-            <button
-              title="yellow"
-              className="m-1 shadow-lg transition duration-200 hover:scale-110 active:scale-105"
-              onClick={() => setActiveColor("yellow")}
-            >
-              <div className="h-16 w-16 rounded-lg bg-yellow-400" />
-            </button>
-          </div>
-        </>
+        <div className="absolute right-2 top-1/4 z-10 flex flex-col justify-evenly sm:right-8 md:right-16 lg:right-32 xl:right-1/4 2xl:right-1/3">
+          <button
+            title="red"
+            className={`shadow-m m-1 transition duration-200 hover:scale-110 active:scale-105 ${
+              activeColor === "red" ? "scale-110 shadow-xl" : "scale-100"
+            }`}
+            onClick={() => setActiveColor("red")}
+          >
+            <div className="h-10 w-10 rounded-lg bg-red-600" />
+          </button>
+          <button
+            title="green"
+            className={`shadow-m m-1 transition duration-200 hover:scale-110 active:scale-105 ${
+              activeColor === "green" ? "scale-110 shadow-xl" : "scale-100"
+            }`}
+            onClick={() => setActiveColor("green")}
+          >
+            <div className="h-10 w-10 rounded-lg bg-green-600" />
+          </button>
+          <button
+            title="orange"
+            className={`shadow-m m-1 transition duration-200 hover:scale-110 active:scale-105 ${
+              activeColor === "orange" ? "scale-110 shadow-xl" : "scale-100"
+            }`}
+            onClick={() => setActiveColor("orange")}
+          >
+            <div className="h-10 w-10 rounded-lg bg-orange-600" />
+          </button>
+          <button
+            title="white"
+            className={`shadow-m m-1 transition duration-200 hover:scale-110 active:scale-105 ${
+              activeColor === "white" ? "scale-110 shadow-xl" : "scale-100"
+            }`}
+            onClick={() => setActiveColor("white")}
+          >
+            <div className="h-10 w-10 rounded-lg bg-white" />
+          </button>
+          <button
+            title="blue"
+            className={`shadow-m m-1 transition duration-200 hover:scale-110 active:scale-105 ${
+              activeColor === "blue" ? "scale-110 shadow-xl" : "scale-100"
+            }`}
+            onClick={() => setActiveColor("blue")}
+          >
+            <div className="h-10 w-10 rounded-lg bg-blue-600" />
+          </button>
+          <button
+            title="yellow"
+            className={`shadow-m m-1 transition duration-200 hover:scale-110 active:scale-105 ${
+              activeColor === "yellow" ? "scale-110 shadow-xl" : "scale-100"
+            }`}
+            onClick={() => setActiveColor("yellow")}
+          >
+            <div className="h-10 w-10 rounded-lg bg-yellow-400" />
+          </button>
+        </div>
       )}
 
-      <div className="w-min-[30rem] m-auto h-1/2 w-full cursor-pointer">
+      <div className="w-min-[30rem] m-auto h-3/5 w-full cursor-pointer">
         <Canvas camera={{ position: [3, 3, 3] }}>
           <OrbitControls
             minPolarAngle={0}
@@ -276,10 +267,10 @@ function App() {
       )}
 
       {mode === "animation" && (
-        <div className="h-24">
-          <div className="flex h-full flex-row justify-center">
-            <div className="relative flex h-full w-80 select-none flex-row overflow-hidden rounded-lg bg-white shadow-lg">
-              <div className="absolute left-0 top-0 z-10 flex h-full w-16 justify-center bg-white">
+        <div className="h-fit">
+          <div className="flex h-20 flex-row justify-center">
+            <div className="relative flex h-full w-5/6 max-w-lg select-none flex-row overflow-hidden rounded-lg bg-white shadow-lg">
+              <div className="absolute left-0 top-0 z-10 flex h-full w-1/5 justify-center bg-white">
                 <button
                   className=" fill-black transition duration-200 hover:scale-110 active:scale-105 disabled:scale-100 disabled:fill-gray-400"
                   onClick={stepBackward}
@@ -288,7 +279,7 @@ function App() {
                   <BackIcon className="fill-inherit" />
                 </button>
               </div>
-              <div className="absolute right-0 top-0 z-10 flex h-full w-16 justify-center bg-white ">
+              <div className="absolute right-0 top-0 z-10 flex h-full w-1/5 justify-center bg-white ">
                 <button
                   className="fill-black transition duration-200 hover:scale-110 active:scale-105 disabled:scale-100 disabled:fill-gray-400"
                   onClick={stepForward}
@@ -299,44 +290,45 @@ function App() {
               </div>
               <div
                 title={sequence.toString()}
-                className="absolute left-16 top-0 z-10 h-full w-16 bg-gradient-to-r from-white"
+                className="absolute left-[20%] top-0 z-10 h-full w-1/5 bg-gradient-to-r from-white"
               />
               <div
                 title={sequence.toString()}
-                className="absolute right-16 top-0 z-10 h-full w-16 bg-gradient-to-l from-white"
+                className="absolute right-[20%] top-0 z-10 h-full w-1/5 bg-gradient-to-l from-white"
               />
               {step < 1 && (
                 <div
-                  className={`flex h-full w-fit items-center 
+                  className={`flex h-full w-1/5 items-center 
               ${animateForward ? "animate-[slide_1s_ease]" : ""}
               ${animateBackward ? "animate-[slideback_1s_ease]" : ""}
               bg-white`}
                 >
-                  <p className="flex w-16 justify-center font-bold text-black"></p>
+                  <div className="flex w-full justify-center font-bold text-black" />
                 </div>
               )}
               {step < 2 && (
                 <div
-                  className={`flex h-full w-fit items-center 
+                  className={`flex h-full w-1/5 items-center 
               ${animateForward ? "animate-[slide_1s_ease]" : ""}
               ${animateBackward ? "animate-[slideback_1s_ease]" : ""}
               bg-white`}
                 >
-                  <p className="flex w-16 justify-center font-bold text-black"></p>
+                  <p className="flex w-full justify-center font-bold text-black"></p>
                 </div>
               )}
               {sequence.map(
                 (move, i) =>
-                  i >= step - 2 && (
+                  i >= step - 2 &&
+                  i <= step + 2 && (
                     <div
                       key={i}
-                      className={`flex h-full w-fit items-center 
+                      className={`flex h-full w-1/5 items-center 
                   ${animateForward ? "animate-[slide_1s_ease]" : ""}
                   ${animateBackward ? "animate-[slideback_1s_ease]" : ""}
                   bg-white`}
                       title={sequence.toString()}
                     >
-                      <p className="flex w-16 justify-center text-3xl font-bold text-black">
+                      <p className="flex w-full justify-center text-3xl font-bold text-black">
                         {move}
                       </p>
                     </div>
@@ -349,7 +341,7 @@ function App() {
               className="transition duration-200 hover:scale-110 active:scale-105"
               onClick={repeat}
             >
-              <ReplayIcon className="fill-black drop-shadow-lg dark:fill-white" />
+              <ReplayIcon className="h-8 fill-black drop-shadow-lg dark:fill-white sm:h-10 md:h-12" />
             </button>
           </div>
         </div>
